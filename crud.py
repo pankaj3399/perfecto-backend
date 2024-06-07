@@ -9,4 +9,5 @@ async def get_random_properties() -> List[Property]:
     async for property in properties_cursor:
         property["_id"] = str(property["_id"])
         properties.append(Property(**property))
+        print(Property(**property), 'xxx')
     return properties

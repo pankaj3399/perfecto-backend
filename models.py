@@ -4,8 +4,7 @@ from pydantic import BaseModel, Field
 from bson import ObjectId
 
 class Property(BaseModel):
-    _id: Any
-    id: int
+    id: Optional[str] = Field(alias="_id")
     name: str
     image: str
     price: float
