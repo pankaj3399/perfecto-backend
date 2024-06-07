@@ -6,7 +6,7 @@ import os
 
 print(os.getenv("MONGO_DETAILS", 8000), 'Hi')
 
-client = AsyncIOMotorClient(MONGO_DETAILS, tlsCAFile=certifi.where())
+client = AsyncIOMotorClient(os.getenv("MONGO_DETAILS", "mongodb+srv://localhost:27017"), tlsCAFile=certifi.where())
 database = client.perfecto
 property_collection = database.get_collection("properties")
 print(property_collection, 'xxxxx')
