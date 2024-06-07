@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException
 from crud import get_random_properties
 from models import Property
 from typing import List
+import uvicorn
 
 app = FastAPI()
 
@@ -14,5 +15,5 @@ async def recommended_properties():
     return properties
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))  # Default to port 8000 if PORT is not set
+    uvicorn.run(app, host="0.0.0.0", port=port)
