@@ -3,6 +3,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from config import MONGO_DETAILS
 import certifi
 
+print(os.getenv("MONGO_DETAILS", 8000), 'Hi')
+
 client = AsyncIOMotorClient(MONGO_DETAILS, tlsCAFile=certifi.where())
 database = client.perfecto
 property_collection = database.get_collection("properties")
