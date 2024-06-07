@@ -4,6 +4,7 @@ from crud import get_random_properties
 from models import Property
 from typing import List
 import uvicorn
+import os
 
 app = FastAPI()
 
