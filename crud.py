@@ -7,6 +7,5 @@ async def get_random_properties() -> List[Property]:
     properties_cursor = property_collection.aggregate([{"$sample": {"size": 3}}])
     properties = []
     async for property in properties_cursor:
-        print("Property",property)
         properties.append(Property(**property))
     return properties
