@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from bson import ObjectId
 
 class Property(BaseModel):
-    _id: ObjectId
+    _id: Any
     id: int
     name: str
     image: str
