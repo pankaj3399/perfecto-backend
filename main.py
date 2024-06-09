@@ -4,10 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from crud import get_random_properties, get_similar_properties
 from bson import ObjectId
 from database import property_collection
-from models import Property
+from models import Property, ContactForm
 import uvicorn
 from typing import List, Optional
 import os
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 app = FastAPI()
 
@@ -116,6 +119,40 @@ async def search_properties(
         property["_id"] = str(property["_id"])
         properties.append(Property(**property))
     return properties
+
+
+@app.post("/contact")
+async def contact(contact_form: ContactForm):
+    # Replace the following with your email and app password
+    gmail_user = os.getenv("GMAIL_USER")
+    gmail_password = os.getenv("GMAIL_PASSWORD")
+    to_email = "iitgncli@gmail.com"
+
+    # Create the email
+    msg = MIMEMultipart()
+    msg['From'] = contact_form.email
+    msg['To'] = to_email
+    msg['Subject'] = "New Contact Form Submission"
+    
+    body = f"""
+    Name: {contact_form.name}
+    Email: {contact_form.email}
+    Phone: {contact_form.phone}
+    Description: {contact_form.description}
+    """
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(gmail_user, gmail_password)
+        text = msg.as_string()
+        server.sendmail(gmail_user, to_email, text)
+        server.quit()
+        return {"message": "Email sent successfully"}
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))  # Default to port 8000 if PORT is not set
