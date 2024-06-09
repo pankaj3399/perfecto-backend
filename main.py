@@ -1,7 +1,7 @@
 # main.py
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from crud import get_random_properties
+from crud import get_random_properties, get_similar_properties
 from bson import ObjectId
 from database import property_collection
 from models import Property
@@ -23,6 +23,13 @@ app.add_middleware(
 @app.get("/recommendedProperties", response_model=List[Property])
 async def recommended_properties():
     properties = await get_random_properties()
+    if not properties:
+        raise HTTPException(status_code=404, detail="No properties found")
+    return properties
+
+@app.get("/similarProperties", response_model=List[Property])
+async def similar_properties():
+    properties = await get_similar_properties()
     if not properties:
         raise HTTPException(status_code=404, detail="No properties found")
     return properties

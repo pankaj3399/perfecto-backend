@@ -28,6 +28,7 @@ class Property(BaseModel):
     homeFacts: Optional[Dict[str, str]]= Field(default=None)
     propertyInformation: Optional[Dict[str, Dict[str, Dict[str, Union[str, int]]]]]= Field(default=None)
     homeForSale: Optional[Any]= Field(default=None)
+    publicRecords: Optional[Any]= Field(default=None)
 
 
     class Config:
