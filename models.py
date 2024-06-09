@@ -1,6 +1,6 @@
 # models.py
 from typing import List, Dict, Union, Any, Optional
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field
 from bson import ObjectId
 
 class Property(BaseModel):
@@ -275,6 +275,6 @@ class Property(BaseModel):
 
 class ContactForm(BaseModel):
     name: str = Field(..., example="John Doe")
-    email: EmailStr = Field(..., example="johndoe@example.com")
+    email: str = Field(..., example="johndoe@example.com")
     phone: str = Field(..., example="123-456-7890")
     description: str = Field(..., example="I'm interested in one of your properties.")
