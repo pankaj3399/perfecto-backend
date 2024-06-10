@@ -11,6 +11,13 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from enum import Enum
+
+class PropertyStatus(str, Enum):
+    coming_soon = "Coming Soon"
+    active = "Active"
+    sold = "Sold"
+    pending = "Pending"
 
 app = FastAPI()
 
@@ -62,7 +69,7 @@ async def search_properties(
     maxBaths: Optional[int] = Query(None),
     minSqft: Optional[int] = Query(None),
     maxSqft: Optional[int] = Query(None),
-    status: Optional[str] = Query(None, enum=["Coming Soon", "Active", "Sold", "Pending"]),
+    status: Optional[List[PropertyStatus]] = Query(None),
     minLotSize: Optional[int] = Query(None),
     maxLotSize: Optional[int] = Query(None),
     minYearBuilt: Optional[int] = Query(None),
@@ -99,7 +106,7 @@ async def search_properties(
     elif maxSqft is not None:
         query["sqft"] = {"$lte": maxSqft}
     if status:
-        query["propertyListingDetails.status"] = status
+        query["propertyListingDetails.status"] = {"$in": status}
     if minLotSize is not None and maxLotSize is not None:
         query["homeFacts.lotSize"] = {"$gte": str(minLotSize), "$lte": str(maxLotSize)}
     elif minLotSize is not None:
