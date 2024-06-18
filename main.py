@@ -73,7 +73,11 @@ async def search_properties(
     minLotSize: Optional[int] = Query(None),
     maxLotSize: Optional[int] = Query(None),
     minYearBuilt: Optional[int] = Query(None),
-    maxYearBuilt: Optional[int] = Query(None)
+    maxYearBuilt: Optional[int] = Query(None),
+    minLat: Optional[float] = None,
+    maxLat: Optional[float] = None,
+    minLng: Optional[float] = None,
+    maxLng: Optional[float] = None,
 ):
     query = {}
 
@@ -119,6 +123,19 @@ async def search_properties(
         query["homeFacts.yearBuilt"] = {"$gte": str(minYearBuilt)}
     elif maxYearBuilt is not None:
         query["homeFacts.yearBuilt"] = {"$lte": str(maxYearBuilt)}
+    if minLat is not None and maxLat is not None:
+        query["latitude"] = {"$gte": minLat, "$lte": maxLat}
+    elif minLat is not None:
+        query["latitude"] = {"$gte": minLat}
+    elif maxLat is not None:
+        query["latitude"] = {"$lte": maxLat}
+
+    if minLng is not None and maxLng is not None:
+        query["longitude"] = {"$gte": minLng, "$lte": maxLng}
+    elif minLng is not None:
+        query["longitude"] = {"$gte": minLng}
+    elif maxLng is not None:
+        query["longitude"] = {"$lte": maxLng}
 
     properties_cursor = property_collection.find(query)
     properties = []
