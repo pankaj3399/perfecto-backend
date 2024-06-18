@@ -79,69 +79,88 @@ async def search_properties(
     minLng: Optional[float] = None,
     maxLng: Optional[float] = None,
 ):
-    query = {}
+    match_stage = {}
 
     if address:
-        query["address"] = {"$regex": address, "$options": "i"}
+        match_stage["address"] = re.compile(f".*{address}.*", re.IGNORECASE)
+    
     if city:
-        query["city"] = {"$regex": city, "$options": "i"}
+        match_stage["city"] = city
+    
     if minPrice is not None and maxPrice is not None:
-        query["price"] = {"$gte": minPrice, "$lte": maxPrice}
+        match_stage["price"] = {"$gte": minPrice, "$lte": maxPrice}
     elif minPrice is not None:
-        query["price"] = {"$gte": minPrice}
+        match_stage["price"] = {"$gte": minPrice}
     elif maxPrice is not None:
-        query["price"] = {"$lte": maxPrice}
+        match_stage["price"] = {"$lte": maxPrice}
+    
     if minBeds is not None and maxBeds is not None:
-        query["beds"] = {"$gte": minBeds, "$lte": maxBeds}
+        match_stage["beds"] = {"$gte": minBeds, "$lte": maxBeds}
     elif minBeds is not None:
-        query["beds"] = {"$gte": minBeds}
+        match_stage["beds"] = {"$gte": minBeds}
     elif maxBeds is not None:
-        query["beds"] = {"$lte": maxBeds}
+        match_stage["beds"] = {"$lte": maxBeds}
+    
     if minBaths is not None and maxBaths is not None:
-        query["baths"] = {"$gte": minBaths, "$lte": maxBaths}
+        match_stage["baths"] = {"$gte": minBaths, "$lte": maxBaths}
     elif minBaths is not None:
-        query["baths"] = {"$gte": minBaths}
+        match_stage["baths"] = {"$gte": minBaths}
     elif maxBaths is not None:
-        query["baths"] = {"$lte": maxBaths}
+        match_stage["baths"] = {"$lte": maxBaths}
+    
     if minSqft is not None and maxSqft is not None:
-        query["sqft"] = {"$gte": minSqft, "$lte": maxSqft}
+        match_stage["sqft"] = {"$gte": minSqft, "$lte": maxSqft}
     elif minSqft is not None:
-        query["sqft"] = {"$gte": minSqft}
+        match_stage["sqft"] = {"$gte": minSqft}
     elif maxSqft is not None:
-        query["sqft"] = {"$lte": maxSqft}
+        match_stage["sqft"] = {"$lte": maxSqft}
+    
     if status:
-        query["propertyListingDetails.status"] = {"$in": status}
+        match_stage["propertyListingDetails.status"] = {"$in": status}
+    
     if minLotSize is not None and maxLotSize is not None:
-        query["homeFacts.lotSize"] = {"$gte": str(minLotSize), "$lte": str(maxLotSize)}
+        match_stage["homeFacts.lotSize"] = {"$gte": minLotSize, "$lte": maxLotSize}
     elif minLotSize is not None:
-        query["homeFacts.lotSize"] = {"$gte": str(minLotSize)}
+        match_stage["homeFacts.lotSize"] = {"$gte": minLotSize}
     elif maxLotSize is not None:
-        query["homeFacts.lotSize"] = {"$lte": str(maxLotSize)}
+        match_stage["homeFacts.lotSize"] = {"$lte": maxLotSize}
+    
     if minYearBuilt is not None and maxYearBuilt is not None:
-        query["homeFacts.yearBuilt"] = {"$gte": str(minYearBuilt), "$lte": str(maxYearBuilt)}
+        match_stage["homeFacts.yearBuilt"] = {"$gte": minYearBuilt, "$lte": maxYearBuilt}
     elif minYearBuilt is not None:
-        query["homeFacts.yearBuilt"] = {"$gte": str(minYearBuilt)}
+        match_stage["homeFacts.yearBuilt"] = {"$gte": minYearBuilt}
     elif maxYearBuilt is not None:
-        query["homeFacts.yearBuilt"] = {"$lte": str(maxYearBuilt)}
+        match_stage["homeFacts.yearBuilt"] = {"$lte": maxYearBuilt}
+    
     if minLat is not None and maxLat is not None:
-        query["latitude"] = {"$gte": minLat, "$lte": maxLat}
+        match_stage["latitude"] = {"$gte": minLat, "$lte": maxLat}
     elif minLat is not None:
-        query["latitude"] = {"$gte": minLat}
+        match_stage["latitude"] = {"$gte": minLat}
     elif maxLat is not None:
-        query["latitude"] = {"$lte": maxLat}
+        match_stage["latitude"] = {"$lte": maxLat}
 
     if minLng is not None and maxLng is not None:
-        query["longitude"] = {"$gte": minLng, "$lte": maxLng}
+        match_stage["longitude"] = {"$gte": minLng, "$lte": maxLng}
     elif minLng is not None:
-        query["longitude"] = {"$gte": minLng}
+        match_stage["longitude"] = {"$gte": minLng}
     elif maxLng is not None:
-        query["longitude"] = {"$lte": maxLng}
+        match_stage["longitude"] = {"$lte": maxLng}
+    
+    pipeline = [
+        {"$addFields": {
+            "latitude": {"$toDouble": "$latitude"},
+            "longitude": {"$toDouble": "$longitude"},
+            "homeFacts.lotSize": {"$toDouble": "$homeFacts.lotSize"},
+            "homeFacts.yearBuilt": {"$toDouble": "$homeFacts.yearBuilt"},
+        }},
+        {"$match": match_stage}
+    ]
 
-    properties_cursor = property_collection.find(query)
     properties = []
-    async for property in properties_cursor:
+    async for property in property_collection.aggregate(pipeline):
         property["_id"] = str(property["_id"])
         properties.append(Property(**property))
+    
     return properties
 
 
