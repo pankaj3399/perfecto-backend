@@ -12,6 +12,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from enum import Enum
+import re
 
 class PropertyStatus(str, Enum):
     coming_soon = "Coming Soon"
