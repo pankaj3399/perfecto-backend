@@ -165,17 +165,7 @@ class Property(BaseModel):
                 ],
                 "homeFacts": {
                     "beds": "4",
-                    "aboveGradeFinishedSqFt": "1852",
-                    "style": "Single Family Residence",
-                    "cooling": "Central Air",
-                    "yearRenovated": "1959",
-                    "apn": "055-183-15",
-                    "totalFinishedSqFt": "1852",
-                    "lotSize": "7210",
                     "yearBuilt": "1954",
-                    "county": "MARIN",
-                    "fireplaceType": "Has Fireplace",
-                    "heating": "Central"
                 },
                 "propertyInformation": {
                     "summary": {
