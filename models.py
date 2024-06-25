@@ -19,16 +19,16 @@ class Property(BaseModel):
     comingSoon: bool
     longitude: str
     latitude: str
-    description: Optional[str]= Field(default=None)
-    propertyListingDetails: Optional[Dict[str, str]]= Field(default=None)
-    schools: Optional[List[Dict[str, str]]]= Field(default=None)
-    amenities: Optional[Dict[str, str]]= Field(default=None)
-    buildingInfo: Optional[Dict[str, str]]= Field(default=None)
-    propertyHistory: Optional[List[Dict[str, str]]]= Field(default=None)
-    homeFacts: Optional[Dict[str, str]]= Field(default=None)
-    propertyInformation: Optional[Dict[str, Dict[str, Dict[str, Union[str, int]]]]]= Field(default=None)
-    homeForSale: Optional[Any]= Field(default=None)
-    publicRecords: Optional[Any]= Field(default=None)
+    description: Optional[str] = None
+    propertyListingDetails: Optional[Dict[str, str]] = None
+    schools: Optional[List[Dict[str, str]]] = None
+    amenities: Optional[Dict[str, str]] = None
+    buildingInfo: Optional[Dict[str, str]] = None
+    propertyHistory: Optional[List[Dict[str, str]]] = None
+    homeFacts: Optional[Dict[str, Union[str, int]]] = None
+    propertyInformation: Optional[Dict[str, Dict[str, Dict[str, Union[str, int]]]]] = None
+    homeForSale: Optional[Any] = None
+    publicRecords: Optional[Any] = None
 
 
     class Config:
