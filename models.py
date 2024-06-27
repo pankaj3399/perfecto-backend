@@ -1,7 +1,24 @@
 # models.py
 from typing import List, Dict, Union, Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field,EmailStr
 from bson import ObjectId
+
+
+class User(BaseModel):
+    email: EmailStr
+    full_name: Optional[str] = None
+    role: str = "user"
+
+class UserInDB(User):
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+    scopes: List[str] = []
 
 class Property(BaseModel):
     id: Optional[str] = Field(alias="_id")

@@ -1,10 +1,12 @@
 # main.py
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from crud import get_random_properties, get_similar_properties
 from bson import ObjectId
-from database import property_collection
-from models import Property, ContactForm
+from database import property_collection, user_collection
+from models import Property, ContactForm, User, UserInDB, Token
+from auth import authenticate_user, create_access_token, get_current_user, get_password_hash
 import uvicorn
 from typing import List, Optional
 import os
@@ -13,6 +15,10 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from enum import Enum
 import re
+from datetime import timedelta
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 class PropertyStatus(str, Enum):
     coming_soon = "Coming Soon"
@@ -30,6 +36,36 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
 )
+
+@app.post("/signup", response_model=User)
+async def create_user(user: UserInDB):
+    existing_user = await user_collection.find_one({"email": user.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    user.password = get_password_hash(user.password)
+    user_dict = user.dict()
+    user_dict["_id"] = str(ObjectId())
+    await user_collection.insert_one(user_dict)
+    return User(**user.dict())
+
+@app.post("/token", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = await authenticate_user(form_data.username, form_data.password, form_data.scopes[0])
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=30)
+    access_token = create_access_token(
+        data={"sub": user.email, "scopes": [user.role]}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/users/me", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
 
 @app.get("/recommendedProperties", response_model=List[Property])
 async def recommended_properties():
