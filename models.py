@@ -9,6 +9,7 @@ class AddressList(BaseModel):
     addresses: List[str]
 
 class RequestedProperty(BaseModel):
+    id: Optional[str] = Field(alias="_id")
     address: str
     agent_id: str
     status: str = "pending"

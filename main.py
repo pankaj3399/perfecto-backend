@@ -254,6 +254,18 @@ async def submit_addresses(address_list: AddressList,  current_user: dict = Depe
 
     return requested_properties
 
+@app.get("/requestedProperties", response_model=List[RequestedProperty])
+async def get_requested_properties(status: str = "pending", current_user: dict = Depends(get_current_user)):
+    # if current_user['role'] != 'agent':
+    #     raise HTTPException(status_code=403, detail="Not authorized")
+    
+    requested_properties = []
+    async for property in requested_property_collection.find({"status": status}):
+        property["_id"] = str(property["_id"])
+        requested_properties.append(RequestedProperty(**property))
+    
+    return requested_properties
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))  # Default to port 8000 if PORT is not set
     uvicorn.run(app, host="0.0.0.0", port=port)
