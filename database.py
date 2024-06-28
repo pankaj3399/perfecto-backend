@@ -8,4 +8,6 @@ client = AsyncIOMotorClient(os.getenv("MONGO_DETAILS", "mongodb+srv://pranavpawa
 database = client.perfecto
 property_collection = database.get_collection("properties")
 user_collection = database.get_collection("users")
+requested_property_collection = database.get_collection("requested_properties")
+
 # print(property_collection, 'xxxxx')

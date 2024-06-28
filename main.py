@@ -1,11 +1,11 @@
 # main.py
-from fastapi import FastAPI, HTTPException, Query, Depends
+from fastapi import FastAPI, HTTPException, Query, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from crud import get_random_properties, get_similar_properties
 from bson import ObjectId
-from database import property_collection, user_collection
-from models import Property, ContactForm, User, UserInDB, Token
+from database import property_collection, user_collection, requested_property_collection
+from models import Property, ContactForm, User, UserInDB, Token, RequestedProperty,AddressList
 from auth import authenticate_user, create_access_token, get_current_user, get_password_hash
 import uvicorn
 from typing import List, Optional
@@ -25,6 +25,7 @@ class PropertyStatus(str, Enum):
     active = "Active"
     sold = "Sold"
     pending = "Pending"
+
 
 app = FastAPI()
 
@@ -233,6 +234,25 @@ async def contact(contact_form: ContactForm):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/submitAddresses", response_model=List[RequestedProperty])
+async def submit_addresses(address_list: AddressList,  current_user: dict = Depends(get_current_user)):
+    print(current_user, 'Hi')
+    if current_user.role != 'agent':
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    requested_properties = []
+
+    for address in address_list.addresses:
+        requested_property = {
+            "address": address,
+            "agent_id": str(current_user.id),
+            "status": "pending"
+        }
+        await requested_property_collection.insert_one(requested_property)
+        requested_properties.append(RequestedProperty(**requested_property))
+
+    return requested_properties
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))  # Default to port 8000 if PORT is not set

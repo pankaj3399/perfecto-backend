@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from database import user_collection
-from models import User, UserInDB, TokenData
+from models import User, UserInDB, TokenData, UserModel
 
 SECRET_KEY = "your_secret_key"  # Replace with your secret key
 ALGORITHM = "HS256"
@@ -22,8 +22,9 @@ class TokenData(BaseModel):
 
 async def get_user(email: str):
     user = await user_collection.find_one({"email": email})
+    print(user, 'get email')
     if user:
-        return UserInDB(**user)
+        return UserModel(**user)
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -69,4 +70,5 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     user = await get_user(email=token_data.email)
     if user is None:
         raise credentials_exception
+    print(user)
     return user

@@ -4,6 +4,16 @@ from pydantic import BaseModel, Field,EmailStr
 from bson import ObjectId
 
 
+
+class AddressList(BaseModel):
+    addresses: List[str]
+
+class RequestedProperty(BaseModel):
+    address: str
+    agent_id: str
+    status: str = "pending"
+
+
 class User(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
@@ -11,6 +21,9 @@ class User(BaseModel):
 
 class UserInDB(User):
     password: str
+
+class UserModel(UserInDB):
+    id: Optional[str] = Field(alias="_id")
 
 class Token(BaseModel):
     access_token: str
