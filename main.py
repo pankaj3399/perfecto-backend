@@ -247,7 +247,8 @@ async def submit_addresses(address_list: AddressList,  current_user: dict = Depe
         requested_property = {
             "address": address,
             "agent_id": str(current_user.id),
-            "status": "pending"
+            "status": "pending",
+            "_id": str(ObjectId())
         }
         await requested_property_collection.insert_one(requested_property)
         requested_properties.append(RequestedProperty(**requested_property))
