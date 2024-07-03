@@ -1,30 +1,36 @@
 # models.py
 from typing import List, Dict, Union, Any, Optional
 from pydantic import BaseModel, Field,EmailStr
-from bson import ObjectId
-
-
+from enum import Enum
 
 class AddressList(BaseModel):
     addresses: List[str]
+
+class PropertyStatus(str, Enum):
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
 
 class RequestedProperty(BaseModel):
     id: Optional[str] = Field(alias="_id")
     address: str
     agent_id: str
-    status: str = "pending"
-
+    status: PropertyStatus = PropertyStatus.pending
 
 class User(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
     role: str = "user"
+    wishlist: Optional[List[str]] = []
+    referral_code: Optional[str] = Field(default=None, min_length=6, max_length=6)
+    phone_number: Optional[str] = None
 
 class UserInDB(User):
     password: str
 
 class UserModel(UserInDB):
     id: Optional[str] = Field(alias="_id")
+    wishlist: Optional[List[str]] = []
 
 class Token(BaseModel):
     access_token: str
@@ -60,6 +66,8 @@ class Property(BaseModel):
     propertyInformation: Optional[Dict[str, Dict[str, Dict[str, Union[str, int]]]]] = None
     homeForSale: Optional[Any] = None
     publicRecords: Optional[Any] = None
+    wishlisted: Optional[bool] = False
+
 
 
     class Config:
@@ -299,3 +307,10 @@ class ContactForm(BaseModel):
     email: str = Field(..., example="johndoe@example.com")
     phone: str = Field(..., example="123-456-7890")
     description: str = Field(..., example="I'm interested in one of your properties.")
+    
+class Referral(BaseModel):
+    _id: str
+    referrer_by: str
+    referrer_id: str
+    referred_user_id: str
+    referred_user_name: str
