@@ -96,19 +96,20 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 @app.get("/recommendedProperties", response_model=List[Property])
-async def recommended_properties(current_user: User = Depends(get_current_user)):
+async def recommended_properties():
     properties = await get_random_properties()
     if not properties:
-        raise HTTPException(status_code=404, detail="No properties found")    
-    wishlist = set(current_user.wishlist)
+        raise HTTPException(status_code=404, detail="No properties found")   
+    return properties
+    # wishlist = set(current_user.wishlist)
     
-    properties_with_wishlist_flag = []
-    for property in properties:
-        property_dict = property.dict()
-        property_dict['wishlisted'] = str(property_dict['id']) in wishlist
-        property_dict['_id'] = str(property_dict['id'])
-        properties_with_wishlist_flag.append(property_dict)
-    return properties_with_wishlist_flag
+    # properties_with_wishlist_flag = []
+    # for property in properties:
+    #     property_dict = property.dict()
+    #     property_dict['wishlisted'] = str(property_dict['id']) in wishlist
+    #     property_dict['_id'] = str(property_dict['id'])
+    #     properties_with_wishlist_flag.append(property_dict)
+    # return properties_with_wishlist_flag
 
 @app.get("/similarProperties", response_model=List[Property])
 async def similar_properties():
