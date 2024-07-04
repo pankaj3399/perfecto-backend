@@ -31,6 +31,7 @@ class UserInDB(User):
 class UserModel(UserInDB):
     id: Optional[str] = Field(alias="_id")
     wishlist: Optional[List[str]] = []
+    phone_number: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str
@@ -314,3 +315,6 @@ class Referral(BaseModel):
     referrer_id: str
     referred_user_id: str
     referred_user_name: str
+    
+class AcceptPropertyRequest(BaseModel):
+    url: str

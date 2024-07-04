@@ -2,10 +2,10 @@
 from fastapi import FastAPI, HTTPException, Query, Depends, Body, Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from crud import get_random_properties, get_similar_properties
+from crud import get_random_properties, get_similar_properties, fetch_data_from_url
 from bson import ObjectId
 from database import property_collection, user_collection, requested_property_collection, referral_collection  
-from models import Property, ContactForm, User, UserInDB, Token, RequestedProperty,AddressList
+from models import Property, ContactForm, User, UserInDB, Token, RequestedProperty,AddressList, AcceptPropertyRequest
 from auth import authenticate_user, create_access_token, get_current_user, get_password_hash
 import uvicorn
 from typing import List, Optional
@@ -18,7 +18,6 @@ import re
 from datetime import timedelta
 import string
 import random
-
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -78,7 +77,7 @@ async def create_user(user: UserInDB, referral_code: Optional[str] = None):
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = await authenticate_user(form_data.username, form_data.password, form_data.scopes[0])
-    print(user, 'user')
+    print(user, 'userHey')
     if not user:
         raise HTTPException(
             status_code=401,
@@ -101,15 +100,6 @@ async def recommended_properties():
     if not properties:
         raise HTTPException(status_code=404, detail="No properties found")   
     return properties
-    # wishlist = set(current_user.wishlist)
-    
-    # properties_with_wishlist_flag = []
-    # for property in properties:
-    #     property_dict = property.dict()
-    #     property_dict['wishlisted'] = str(property_dict['id']) in wishlist
-    #     property_dict['_id'] = str(property_dict['id'])
-    #     properties_with_wishlist_flag.append(property_dict)
-    # return properties_with_wishlist_flag
 
 @app.get("/similarProperties", response_model=List[Property])
 async def similar_properties():
@@ -130,6 +120,7 @@ async def get_property(property_id: str):
     document["_id"] = str(document["_id"])
 
     return document
+
 
 @app.get("/search", response_model=List[Property])
 async def search_properties(
@@ -306,8 +297,6 @@ async def get_requested_properties(status: str = "pending", current_user: dict =
 # wishlist apis
 @app.post("/wishlist/add/{property_id}", response_model=User)
 async def add_to_wishlist(property_id: str, current_user: User = Depends(get_current_user)):
-    print('wishlist add' ,current_user)
-    print('Current wishlist:', current_user.wishlist)
     if not property_id:
         raise HTTPException(status_code=400, detail="Invalid property ID format")
 
@@ -356,6 +345,48 @@ async def reject_requested_property(property_id: str = Path(..., description="Th
     updated_property = await requested_property_collection.find_one_and_update(
         {"_id": ObjectId(property_id)},
         {"$set": {"status": "rejected"}},
+        return_document=True
+    )
+
+    if not updated_property:
+        raise HTTPException(status_code=404, detail="Requested property not found")
+
+    updated_property["_id"] = str(updated_property["_id"])
+    return updated_property
+
+@app.get("/auth/property/{property_id}", response_model=Property)
+async def get_property(property_id: str, current_user: User = Depends(get_current_user)):
+    if not ObjectId.is_valid(property_id):
+        raise HTTPException(status_code=400, detail="Invalid property ID format")
+
+    document = await property_collection.find_one({"_id": ObjectId(property_id)})
+    if document is None:
+        raise HTTPException(status_code=404, detail="Property not found")
+    
+    document["_id"] = str(document["_id"])
+    wishlist = current_user.wishlist
+    document["wishlisted"] = str(document["_id"]) in wishlist
+    return document
+
+
+
+@app.post("/property/{property_id}/accept", response_model=dict)
+async def accept_requested_property(
+    property_id: str = Path(..., description="The ID of the requested property to accept"),
+    request_data: AcceptPropertyRequest = None,
+    current_user: User = Depends(get_current_user)):
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Only admins can reject properties")
+
+    data = await fetch_data_from_url(request_data.url)
+    propert_name = data.get('name')
+    property_exists = await property_collection.find_one({"name": propert_name})
+    if not property_exists:
+        await property_collection.insert_one(data)
+
+    updated_property = await requested_property_collection.find_one_and_update(
+        {"_id": ObjectId(property_id)},
+        {"$set": {"status": "accepted"}},
         return_document=True
     )
 
