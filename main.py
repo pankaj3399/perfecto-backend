@@ -343,7 +343,7 @@ async def reject_requested_property(property_id: str = Path(..., description="Th
         raise HTTPException(status_code=403, detail="Only admins can reject properties")
 
     updated_property = await requested_property_collection.find_one_and_update(
-        {"_id": ObjectId(property_id)},
+        {"_id": str(property_id)},
         {"$set": {"status": "rejected"}},
         return_document=True
     )
@@ -385,7 +385,7 @@ async def accept_requested_property(
         await property_collection.insert_one(data)
 
     updated_property = await requested_property_collection.find_one_and_update(
-        {"_id": ObjectId(property_id)},
+        {"_id": str(property_id)},
         {"$set": {"status": "accepted"}},
         return_document=True
     )
