@@ -215,8 +215,20 @@ async def search_properties(
         {"$addFields": {
             "latitude": {"$toDouble": "$latitude"},
             "longitude": {"$toDouble": "$longitude"},
-            "homeFacts.lotSize": {"$toDouble": "$homeFacts.lotSize"},
-            "homeFacts.yearBuilt": {"$toDouble": "$homeFacts.yearBuilt"},
+            "homeFacts.lotSize": {
+                "$cond": {
+                    "if": {"$and": [{"$ne": ["$homeFacts.lotSize", None]}, {"$ne": ["$homeFacts.lotSize", ""]}]},
+                    "then": {"$toDouble": "$homeFacts.lotSize"},
+                    "else": "$homeFacts.lotSize"
+                }
+            },
+            "homeFacts.yearBuilt": {
+                "$cond": {
+                    "if": {"$and": [{"$ne": ["$homeFacts.yearBuilt", None]}, {"$ne": ["$homeFacts.yearBuilt", ""]}]},
+                    "then": {"$toDouble": "$homeFacts.yearBuilt"},
+                    "else": "$homeFacts.yearBuilt"
+                }
+            }
         }},
         {"$match": match_stage}
     ]
@@ -265,7 +277,7 @@ async def contact(contact_form: ContactForm):
 @app.post("/submitAddresses", response_model=List[RequestedProperty])
 async def submit_addresses(address_list: AddressList,  current_user: dict = Depends(get_current_user)):
     print(current_user, 'Hi')
-    if current_user.role != 'agent':
+    if current_user.role != 'agent' and current_user.role != 'user':
         raise HTTPException(status_code=403, detail="Not authorized")
 
     requested_properties = []
@@ -273,7 +285,7 @@ async def submit_addresses(address_list: AddressList,  current_user: dict = Depe
     for address in address_list.addresses:
         requested_property = {
             "address": address,
-            "agent_id": str(current_user.id),
+            "user_id": str(current_user.id),
             "status": "pending",
             "_id": str(ObjectId())
         }
@@ -369,24 +381,27 @@ async def get_property(property_id: str, current_user: User = Depends(get_curren
     return document
 
 
-
 @app.post("/property/{property_id}/accept", response_model=dict)
 async def accept_requested_property(
     property_id: str = Path(..., description="The ID of the requested property to accept"),
     request_data: AcceptPropertyRequest = None,
     current_user: User = Depends(get_current_user)):
+    
     if current_user.role != 'admin':
         raise HTTPException(status_code=403, detail="Only admins can reject properties")
 
     data = await fetch_data_from_url(request_data.url)
-    propert_name = data.get('name')
-    property_exists = await property_collection.find_one({"name": propert_name})
+    property_name = data.get('name')
+    property_exists = await property_collection.find_one({"name": property_name})
+    
     if not property_exists:
-        await property_collection.insert_one(data)
+        data["user_id"] = current_user.id
+        new_property = await property_collection.insert_one(data)
+        
 
     updated_property = await requested_property_collection.find_one_and_update(
         {"_id": str(property_id)},
-        {"$set": {"status": "accepted"}},
+        {"$set": {"status": "accepted", "user_id": current_user.id}},
         return_document=True
     )
 

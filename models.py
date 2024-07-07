@@ -14,7 +14,7 @@ class PropertyStatus(str, Enum):
 class RequestedProperty(BaseModel):
     id: Optional[str] = Field(alias="_id")
     address: str
-    agent_id: str
+    user_id: str
     status: PropertyStatus = PropertyStatus.pending
 
 class User(BaseModel):
@@ -68,8 +68,7 @@ class Property(BaseModel):
     homeForSale: Optional[Any] = None
     publicRecords: Optional[Any] = None
     wishlisted: Optional[bool] = False
-
-
+    user_id: Optional[Any] = None
 
     class Config:
         json_schema_extra = {
