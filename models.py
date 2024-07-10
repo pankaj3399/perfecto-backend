@@ -22,7 +22,7 @@ class User(BaseModel):
     full_name: Optional[str] = None
     role: str = "user"
     wishlist: Optional[List[str]] = []
-    referral_code: Optional[str] = Field(default=None, min_length=6, max_length=6)
+    referral_code: Optional[str] = Field(default=None, min_length=0, max_length=6)
     phone_number: Optional[str] = None
 
 class UserInDB(User):
