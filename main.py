@@ -277,7 +277,7 @@ async def contact(contact_form: ContactForm):
 @app.post("/submitAddresses", response_model=List[RequestedProperty])
 async def submit_addresses(address_list: AddressList,  current_user: dict = Depends(get_current_user)):
     print(current_user, 'Hi')
-    if current_user.role != 'agent' and current_user.role != 'user':
+    if current_user.role != 'agent' and current_user.role != 'seller':
         raise HTTPException(status_code=403, detail="Not authorized")
 
     requested_properties = []
@@ -410,6 +410,33 @@ async def accept_requested_property(
 
     updated_property["_id"] = str(updated_property["_id"])
     return updated_property
+
+@app.put("/property/{property_id}/update-details", response_model=Property)
+async def update_property_details(
+    property_id: str = Path(..., description="The ID of the property to update"),
+    monthly_payment: float = Body(...),
+    down_payment: float = Body(...),
+    terms: float = Body(...),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Only admins can update property details")
+
+    if not ObjectId.is_valid(property_id):
+        raise HTTPException(status_code=400, detail="Invalid property ID format")
+
+    updated_property = await property_collection.find_one_and_update(
+        {"_id": ObjectId(property_id)},
+        {"$set": {"monthlyPayment": monthly_payment, "downPayment": down_payment, "terms": terms}},
+        return_document=True
+    )
+    
+    if not updated_property:
+        raise HTTPException(status_code=404, detail="Property not found")
+
+    updated_property["_id"] = str(updated_property["_id"])
+    return updated_property
+
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))  # Default to port 8000 if PORT is not set

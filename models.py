@@ -69,6 +69,10 @@ class Property(BaseModel):
     publicRecords: Optional[Any] = None
     wishlisted: Optional[bool] = False
     user_id: Optional[Any] = None
+    propertyImages: Optional[List[str]] = None
+    monthlyPayment: Optional[float] = None
+    downPayment: Optional[float] = None
+    terms: Optional[float] = None
 
     class Config:
         json_schema_extra = {
