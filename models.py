@@ -61,9 +61,9 @@ class Property(BaseModel):
     propertyListingDetails: Optional[Dict[str, str]] = None
     schools: Optional[List[Dict[str, str]]] = None
     amenities: Optional[Dict[str, str]] = None
-    buildingInfo: Optional[Dict[str, str]] = None
+    buildingInfo: Optional[Dict[str, Union[str, None]]] = None
     propertyHistory: Optional[List[Dict[str, str]]] = None
-    homeFacts: Optional[Dict[str, Union[str, int]]] = None
+    homeFacts: Optional[Dict[str, Union[str, int, None]]] = None
     propertyInformation: Optional[Dict[str, Dict[str, Dict[str, Union[str, int]]]]] = None
     homeForSale: Optional[Any] = None
     publicRecords: Optional[Any] = None
