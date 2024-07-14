@@ -49,7 +49,7 @@ class Property(BaseModel):
     address: str
     postalCode: str
     city: str
-    region: str
+    region: Optional[str] = None
     state: str
     beds: int
     baths: Union[int, float]
