@@ -219,14 +219,14 @@ async def search_properties(
                 "$cond": {
                     "if": {"$and": [{"$ne": ["$homeFacts.lotSize", None]}, {"$ne": ["$homeFacts.lotSize", ""]}]},
                     "then": {"$toDouble": "$homeFacts.lotSize"},
-                    "else": "$homeFacts.lotSize"
+                    "else": "0"
                 }
             },
             "homeFacts.yearBuilt": {
                 "$cond": {
                     "if": {"$and": [{"$ne": ["$homeFacts.yearBuilt", None]}, {"$ne": ["$homeFacts.yearBuilt", ""]}]},
                     "then": {"$toDouble": "$homeFacts.yearBuilt"},
-                    "else": "$homeFacts.yearBuilt"
+                    "else": "0"
                 }
             }
         }},
